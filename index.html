@@ -6,40 +6,157 @@
   <title>Basketball Stats Counter</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #111; color: #fff; padding: 16px; }
-    h1 { font-size: 24px; margin: 8px 0 16px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .stat { background: #1f1f1f; border-radius: 18px; padding: 16px; border: 1px solid #333; min-height: 112px; display: flex; flex-direction: column; justify-content: space-between; touch-action: manipulation; }
-    .label { font-size: 18px; font-weight: 700; line-height: 1.2; }
-    .count { font-size: 44px; font-weight: 800; text-align: right; margin-top: 10px; }
-    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-    button { border: 0; border-radius: 16px; padding: 16px; font-size: 18px; font-weight: 700; background: #2d2d2d; color: #fff; touch-action: manipulation; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #111;
+      color: #fff;
+      padding: 10px;
+      overflow: hidden;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 4px 0 8px;
+      line-height: 1.1;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .stat {
+      background: #1f1f1f;
+      border-radius: 14px;
+      padding: 8px;
+      border: 1px solid #333;
+      height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      touch-action: manipulation;
+    }
+    .label {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.15;
+      color: #ddd;
+    }
+    .count {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: right;
+      line-height: 1;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      background: #2d2d2d;
+      color: #fff;
+      touch-action: manipulation;
+    }
     button:active, .stat:active { transform: scale(0.98); }
-    .summary { background: #1f1f1f; border: 1px solid #333; border-radius: 18px; padding: 16px; margin-top: 16px; font-size: 18px; line-height: 1.7; }
+    .summary {
+      background: #1f1f1f;
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 9px;
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
     .danger { background: #5a1d1d; }
     .primary { background: #1f4d2b; }
-    .small { color: #aaa; font-size: 13px; margin-top: 12px; }
+    .small { color: #aaa; font-size: 10px; margin-top: 5px; }
   </style>
 </head>
 <body>
   <h1>🏀 Basketball Stats</h1>
+
   <div class="grid" id="statsGrid"></div>
+
   <div class="actions">
     <button class="primary" onclick="undoLast()">Undo Last</button>
     <button class="danger" onclick="resetStats()">Reset Game</button>
   </div>
+
   <div class="summary" id="summary"></div>
   <div class="small">Tap a card to +1. Data is saved on this device.</div>
-<script>
-const stats = [["2PA","2分出手"],["2PM","2分命中"],["3PA","3分出手"],["3PM","3分命中"],["FTA","罚球出手"],["FTM","罚球命中"],["ORB","进攻篮板"],["DRB","防守篮板"],["AST","助攻"],["STL","抢断"],["TOV","失误"]];
-let counts = JSON.parse(localStorage.getItem("basketballCounts")) || Object.fromEntries(stats.map(([key]) => [key, 0]));
-let history = JSON.parse(localStorage.getItem("basketballHistory")) || [];
-function save(){localStorage.setItem("basketballCounts",JSON.stringify(counts));localStorage.setItem("basketballHistory",JSON.stringify(history));}
-function increment(key){counts[key]=(counts[key]||0)+1;history.push(key);save();render();}
-function undoLast(){const last=history.pop();if(!last)return;counts[last]=Math.max(0,(counts[last]||0)-1);save();render();}
-function resetStats(){if(!confirm("Reset all stats for this game?"))return;counts=Object.fromEntries(stats.map(([key])=>[key,0]));history=[];save();render();}
-function render(){const grid=document.getElementById("statsGrid");grid.innerHTML="";stats.forEach(([key,zh])=>{const card=document.createElement("div");card.className="stat";card.onclick=()=>increment(key);card.innerHTML=`<div class="label">${key}<br>${zh}</div><div class="count">${counts[key]||0}</div>`;grid.appendChild(card);});const pts=(counts["2PM"]||0)*2+(counts["3PM"]||0)*3+(counts["FTM"]||0);const reb=(counts["ORB"]||0)+(counts["DRB"]||0);document.getElementById("summary").innerHTML=`<strong>Summary</strong><br>PTS 得分: ${pts}<br>REB 总篮板: ${reb}<br>2PT: ${counts["2PM"]||0}/${counts["2PA"]||0}<br>3PT: ${counts["3PM"]||0}/${counts["3PA"]||0}<br>FT: ${counts["FTM"]||0}/${counts["FTA"]||0}`;}
-render();
-</script>
+
+  <script>
+    const stats = [
+      ["2PA", "2分出手"],
+      ["2PM", "2分命中"],
+      ["3PA", "3分出手"],
+      ["3PM", "3分命中"],
+      ["FTA", "罚球出手"],
+      ["FTM", "罚球命中"],
+      ["ORB", "进攻板"],
+      ["DRB", "防守板"],
+      ["AST", "助攻"],
+      ["STL", "抢断"],
+      ["TOV", "失误"]
+    ];
+
+    let counts = JSON.parse(localStorage.getItem("basketballCounts")) || Object.fromEntries(stats.map(([key]) => [key, 0]));
+    let history = JSON.parse(localStorage.getItem("basketballHistory")) || [];
+
+    function save() {
+      localStorage.setItem("basketballCounts", JSON.stringify(counts));
+      localStorage.setItem("basketballHistory", JSON.stringify(history));
+    }
+
+    function increment(key) {
+      counts[key] = (counts[key] || 0) + 1;
+      history.push(key);
+      save();
+      render();
+    }
+
+    function undoLast() {
+      const last = history.pop();
+      if (!last) return;
+      counts[last] = Math.max(0, (counts[last] || 0) - 1);
+      save();
+      render();
+    }
+
+    function resetStats() {
+      if (!confirm("Reset all stats for this game?")) return;
+      counts = Object.fromEntries(stats.map(([key]) => [key, 0]));
+      history = [];
+      save();
+      render();
+    }
+
+    function render() {
+      const grid = document.getElementById("statsGrid");
+      grid.innerHTML = "";
+      stats.forEach(([key, zh]) => {
+        const card = document.createElement("div");
+        card.className = "stat";
+        card.onclick = () => increment(key);
+        card.innerHTML = `<div class="label">${key}<br>${zh}</div><div class="count">${counts[key] || 0}</div>`;
+        grid.appendChild(card);
+      });
+
+      const pts = (counts["2PM"] || 0) * 2 + (counts["3PM"] || 0) * 3 + (counts["FTM"] || 0);
+      const reb = (counts["ORB"] || 0) + (counts["DRB"] || 0);
+      document.getElementById("summary").innerHTML = `
+        <strong>Summary</strong> ｜ PTS: ${pts} ｜ REB: ${reb}<br>
+        2PT: ${counts["2PM"] || 0}/${counts["2PA"] || 0} ｜ 3PT: ${counts["3PM"] || 0}/${counts["3PA"] || 0} ｜ FT: ${counts["FTM"] || 0}/${counts["FTA"] || 0}
+      `;
+    }
+
+    render();
+  </script>
 </body>
 </html>
