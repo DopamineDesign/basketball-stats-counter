@@ -1,165 +1,114 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Basketball Stats Counter</title>
+```html
+<style>
+  * { box-sizing: border-box; }
 
-  <link rel="icon" type="image/png" href="icon-180.png">
-  <link rel="apple-touch-icon" href="icon-180.png">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #111;
-      color: #fff;
-      padding: 10px;
-      overflow: hidden;
-    }
-    h1 {
-      font-size: 18px;
-      margin: 4px 0 8px;
-      line-height: 1.1;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 7px;
-    }
-    .stat {
-      background: #1f1f1f;
-      border-radius: 14px;
-      padding: 8px;
-      border: 1px solid #333;
-      height: 72px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      touch-action: manipulation;
-    }
-    .label {
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.15;
-      color: #ddd;
-    }
-    .count {
-      font-size: 28px;
-      font-weight: 800;
-      text-align: right;
-      line-height: 1;
-    }
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    button {
-      border: 0;
-      border-radius: 12px;
-      padding: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      background: #2d2d2d;
-      color: #fff;
-      touch-action: manipulation;
-    }
-    button:active, .stat:active { transform: scale(0.98); }
-    .summary {
-      background: #1f1f1f;
-      border: 1px solid #333;
-      border-radius: 14px;
-      padding: 9px;
-      margin-top: 8px;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-    .danger { background: #5a1d1d; }
-    .primary { background: #1f4d2b; }
-    .small { color: #aaa; font-size: 10px; margin-top: 5px; }
-  </style>
-</head>
-<body>
-  <h1>🏀 Basketball Stats</h1>
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #111;
+    color: #fff;
+    padding: 8px;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-  <div class="grid" id="statsGrid"></div>
+  h1 {
+    font-size: 18px;
+    margin: 2px 0 8px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
 
-  <div class="actions">
-    <button class="primary" onclick="undoLast()">Undo Last</button>
-    <button class="danger" onclick="resetStats()">Reset Game</button>
-  </div>
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    overflow: hidden;
+  }
 
-  <div class="summary" id="summary"></div>
-  <div class="small">Tap a card to +1. Data is saved on this device.</div>
+  .stat {
+    background: #1f1f1f;
+    border-radius: 18px;
+    padding: 14px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    touch-action: manipulation;
+    user-select: none;
+    min-height: 95px;
+  }
 
-  <script>
-    const stats = [
-      ["2PA", "2分出手"],
-      ["2PM", "2分命中"],
-      ["3PA", "3分出手"],
-      ["3PM", "3分命中"],
-      ["FTA", "罚球出手"],
-      ["FTM", "罚球命中"],
-      ["ORB", "进攻板"],
-      ["DRB", "防守板"],
-      ["AST", "助攻"],
-      ["STL", "抢断"],
-      ["TOV", "失误"]
-    ];
+  .stat:active {
+    transform: scale(0.96);
+    background: #2a2a2a;
+  }
 
-    let counts = JSON.parse(localStorage.getItem("basketballCounts")) || Object.fromEntries(stats.map(([key]) => [key, 0]));
-    let history = JSON.parse(localStorage.getItem("basketballHistory")) || [];
+  .label {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #ddd;
+  }
 
-    function save() {
-      localStorage.setItem("basketballCounts", JSON.stringify(counts));
-      localStorage.setItem("basketballHistory", JSON.stringify(history));
-    }
+  .count {
+    font-size: 42px;
+    font-weight: 900;
+    text-align: right;
+    line-height: 1;
+  }
 
-    function increment(key) {
-      counts[key] = (counts[key] || 0) + 1;
-      history.push(key);
-      save();
-      render();
-    }
+  .bottom {
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
 
-    function undoLast() {
-      const last = history.pop();
-      if (!last) return;
-      counts[last] = Math.max(0, (counts[last] || 0) - 1);
-      save();
-      render();
-    }
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
 
-    function resetStats() {
-      if (!confirm("Reset all stats for this game?")) return;
-      counts = Object.fromEntries(stats.map(([key]) => [key, 0]));
-      history = [];
-      save();
-      render();
-    }
+  button {
+    border: 0;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 800;
+    color: white;
+    touch-action: manipulation;
+  }
 
-    function render() {
-      const grid = document.getElementById("statsGrid");
-      grid.innerHTML = "";
-      stats.forEach(([key, zh]) => {
-        const card = document.createElement("div");
-        card.className = "stat";
-        card.onclick = () => increment(key);
-        card.innerHTML = `<div class="label">${key}<br>${zh}</div><div class="count">${counts[key] || 0}</div>`;
-        grid.appendChild(card);
-      });
+  button:active {
+    transform: scale(0.97);
+  }
 
-      const pts = (counts["2PM"] || 0) * 2 + (counts["3PM"] || 0) * 3 + (counts["FTM"] || 0);
-      const reb = (counts["ORB"] || 0) + (counts["DRB"] || 0);
-      document.getElementById("summary").innerHTML = `
-        <strong>Summary</strong> ｜ PTS: ${pts} ｜ REB: ${reb}<br>
-        2PT: ${counts["2PM"] || 0}/${counts["2PA"] || 0} ｜ 3PT: ${counts["3PM"] || 0}/${counts["3PA"] || 0} ｜ FT: ${counts["FTM"] || 0}/${counts["FTA"] || 0}
-      `;
-    }
+  .primary {
+    background: #1f6b3b;
+  }
 
-    render();
-  </script>
-</body>
-</html>
+  .danger {
+    background: #7a2020;
+  }
+
+  .summary {
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 10px;
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .small {
+    color: #888;
+    font-size: 10px;
+    margin-top: 4px;
+    text-align: center;
+  }
+</style>
+```
